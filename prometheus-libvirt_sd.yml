@@ -1,0 +1,53 @@
+# List of libvirt hypervisors to connect to
+# ssh authentication via public key *should* be enabled
+hosts:
+  # - qemu:///system
+- qemu+ssh://root@localhost/system
+
+# Polling interval to contact the libvirt hypervisors
+# If 0, polling is disabled. Will execute once and exit.
+pollinginterval: 0
+
+# Where to write the generated scrape configuration files
+# outputdir: /etc/prometheus/scrape-config/
+outputdir: ./
+
+
+# ----------------------
+#    Example rules
+# ----------------------
+
+groups:
+
+# Add all VMs as scrape targets with job label 'libvirt'
+- labels: { job: libvirt }
+  domains:
+    - match: .*
+      ports: [9100]
+
+# Example settings
+
+# # set of base labels that apply to all domains that match the expressions below
+# - labels: { job: ci-server }
+#   domains:
+#     # 'match' supports regular expressions
+#     - match: jenkins-ci-.* # match all domains that start with 'jenkins-ci-'
+#     # list of ports to be scrapped on domains that match the expression above
+#       ports: [9100] # prometheus node_exporter port
+#
+# # A more complex example
+# - labels: { job: web-servers, environment: production }
+#   domains:
+#     - match: proxy-.* # match all domains that start with 'proxy-'
+#       labels: { stack: nginx } # add extra labels to domains that match the regex above
+#       ports: [9100] # scrape port 9100
+#       # --
+#     - match: apache-.* # match all domains that start with 'apache-'
+#       labels: { stack: apache } # add extra labels to domains that match the regex above
+#       ports: [9100, 9200] # scrape ports 9100 and 9200
+#       # --
+#       # you can match the same domain multiple times if you need to apply specific labels to a scrape port
+#       # in this example we want to scrape port 80, with a custom metrics path
+#     - match: apache-.*
+#       labels: { stack: apache, __metrics_path__: /my-metrics }
+#       ports: [80]
