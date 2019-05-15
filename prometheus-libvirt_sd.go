@@ -54,14 +54,6 @@ func findMatchingDomains(domainList []libvirt.Domain, hvDomain string,
 	result := []string{}
 	for _, domainObj := range domainList {
 		domainName, _ := domainObj.GetName()
-
-		// xmldoc, _ := domainObj.GetXMLDesc(0)
-		// domcfg := &libvirtxml.Domain{}
-		// domcfg.Unmarshal(xmldoc)
-		// fmt.Printf("mac %+v\n", domcfg.Devices.Interfaces[0].MAC.Address)
-		// fmt.Printf("net %+v\n", domcfg.Devices.Interfaces[0].Source.Network.Network)
-		// fmt.Printf("x: %v\n", domainName)
-
 		fqdn := domainName + hvDomain
 		match, _ := regexp.MatchString(domainExpr, fqdn)
 		if match {
@@ -77,20 +69,19 @@ func queryLibvirtHypervisor(uri string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	defer conn.Close()
 
 	// Get all domains from libvirt hypervisor
 	hvDomain := getHypervisorDomainName(conn)
 	promConfig := []PromScrapeGroup{}
 	domainList, _ := conn.ListAllDomains(0)
 
-	// Test
-	// networkDetails, _ := conn.LookupNetworkByName("default")
-	// net, _ := networkDetails.GetDHCPLeases()
-	// domcfg := &libvirtxml.Domain{}
-	// domcfg.Unmarshal(xmldoc)
-	// fmt.Printf("network: %+v", net)
-
+	// Close connections once we finish
+	defer func() {
+		for _, domainObj := range domainList {
+			domainObj.Free()
+		}
+		conn.Close()
+	}()
 
 	for _, groupConfig := range config.Groups {
 		for _, domainConfig := range groupConfig.Domains {
